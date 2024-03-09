@@ -21,3 +21,23 @@ bootstrapping, and Linux distributions built on musl can be found on
 the project website:
 
     http://www.musl-libc.org/
+
+
+[Echelon fork notes]
+  This fork adds some features that can be enabled with configure
+  switches:
+    --enable-nommu-error
+
+  Configure switch: --enable-nommu-error
+    This switch causes calls to some system call wrappers that are either
+    entirely incompatible with or are detected to be used in a NoMMU
+    incompatible way to return an error instead of making the call to the
+    kernel.  This is intended to be used to detect where programs attempt
+    to use NoMMU incompatible calls that would otherwise result in
+    difficult to diagnose bugs.
+
+    The system calls which are currently supported:
+      fork  - returns ENOSYS always
+      clone - returns EOPNOTSUPP if flags not CLONE_VM
+      mmap  - returns EOPNOTSUPP if flags not MAP_ANONYMOUS/MAP_ANON and
+              either MAP_SHARED or MAP_SHARED_VALIDATE

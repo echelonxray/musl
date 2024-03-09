@@ -25,6 +25,12 @@ void *__mmap(void *start, size_t len, int prot, int flags, int fd, off_t off)
 	if (flags & MAP_FIXED) {
 		__vm_wait();
 	}
+#ifdef NOMMU_ERROR
+	if ((flags & (MAP_SHARED | MAP_SHARED_VALIDATE)) && ((flags & MAP_ANONYMOUS) == 0)) {
+		errno = EOPNOTSUPP;
+		return MAP_FAILED;
+	}
+#endif
 #ifdef SYS_mmap2
 	ret = __syscall(SYS_mmap2, start, len, prot, flags, fd, off/UNIT);
 #else

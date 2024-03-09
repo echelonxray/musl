@@ -34,6 +34,7 @@ Optional features:
   --enable-wrapper=...    build given musl toolchain wrapper [auto]
   --disable-shared        inhibit building shared library [enabled]
   --disable-static        inhibit building static library [enabled]
+  --enable-nommu-error    Calls that are not supported on nommu return error
 
 Optional packages:
   --with-malloc=...       choose malloc implementation [mallocng]
@@ -143,6 +144,7 @@ wrapper=auto
 gcc_wrapper=no
 clang_wrapper=no
 malloc_dir=mallocng
+nommu_error=no
 
 for arg ; do
 case "$arg" in
@@ -172,6 +174,8 @@ case "$arg" in
 --disable-wrapper|--enable-wrapper=no) wrapper=no ;;
 --enable-gcc-wrapper|--enable-gcc-wrapper=yes) wrapper=yes ; gcc_wrapper=yes ;;
 --disable-gcc-wrapper|--enable-gcc-wrapper=no) wrapper=no ;;
+--enable-nommu-error|--enable-nommu-error=yes) nommu_error=yes ;;
+--disable-nommu-error|--enable-nommu-error=no) nommu_error=no ;;
 --with-malloc=*) malloc_dir=${arg#*=} ;;
 --enable-*|--disable-*|--with-*|--without-*|--*dir=*) ;;
 --host=*|--target=*) target=${arg#*=} ;;
@@ -411,6 +415,11 @@ tryflag CFLAGS_MEMOPS -fno-tree-loop-distribute-patterns
 # Enable debugging if requessted.
 #
 test "$debug" = yes && CFLAGS_AUTO=-g
+
+#
+# Enable NoMMU Error if requested
+#
+test "$nommu_error" = yes && CFLAGS_AUTO="$CFLAGS_AUTO -DNOMMU_ERROR"
 
 #
 # Preprocess asm files to add extra debugging information if debug is

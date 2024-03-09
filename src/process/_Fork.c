@@ -1,5 +1,6 @@
 #include <unistd.h>
 #include <signal.h>
+#include <errno.h>
 #include "syscall.h"
 #include "libc.h"
 #include "lock.h"
@@ -32,10 +33,14 @@ pid_t _Fork(void)
 	sigset_t set;
 	__block_all_sigs(&set);
 	LOCK(__abort_lock);
+#ifdef NOMMU_ERROR
+	ret = -ENOSYS;
+#else
 #ifdef SYS_fork
 	ret = __syscall(SYS_fork);
 #else
 	ret = __syscall(SYS_clone, SIGCHLD, 0);
+#endif
 #endif
 	__post_Fork(ret);
 	__restore_sigs(&set);

@@ -2,6 +2,7 @@
 #include <stdarg.h>
 #include <unistd.h>
 #include <sched.h>
+#include <errno.h>
 #include "pthread_impl.h"
 #include "syscall.h"
 #include "lock.h"
@@ -47,8 +48,12 @@ int clone(int (*func)(void *), void *stack, int flags, void *arg, ...)
 	 * thread structure. In this case, the best we can do is assume the
 	 * caller is content with an extremely restrictive execution context
 	 * like the one vfork() would provide. */
-	if (flags & CLONE_VM) return __syscall_ret(
-		__clone(func, stack, flags, arg, ptid, tls, ctid));
+	if (flags & CLONE_VM)
+		return __syscall_ret(__clone(func, stack, flags, arg, ptid, tls, ctid));
+#ifdef NOMMU_ERROR
+	else
+		return __syscall_ret(-EOPNOTSUPP);
+#endif
 
 	__block_all_sigs(&csa.sigmask);
 	LOCK(__abort_lock);
